@@ -50,7 +50,7 @@ app.get("/register", (req, res)=>{
 })
 
 
-const sendMail = (getPassword, getFirstname)=>{
+const sendMail = (getPassword, getFirstname, randomNum)=>{
     var transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -63,7 +63,8 @@ const sendMail = (getPassword, getFirstname)=>{
         from: 'prashik.ganer123@gmail.com',
         to: getPassword,
         subject: 'Sending Email using Node.js',
-        text: 'Hello' + getFirstname + ', welcome to Senselive. Thanks for signing up!'
+        text: 'Hello' + getFirstname + ', welcome to Senselive. Thanks for signing up! Your 1 time password is '+ randomNum +'.'
+        // text: 'Hello' + getFirstname + ', welcome to Senselive. Thanks for signing up!'
       };
       
       transporter.sendMail(mailOptions, function(error, info){
@@ -81,6 +82,8 @@ app.post("/register", async(req, res)=>{
     try{
         // console.log(req.body.firstname);
         // res.send(req.body.firstname);
+        var randomNum = Math.floor(Math.random() * 100000) 
+        console.log(randomNum) 
 
         const password = req.body.password;
         const cpassword = req.body.cpassword;
@@ -142,7 +145,9 @@ app.post("/register", async(req, res)=>{
             console.log(registered.firstname)
             // console.log(req.body.registered);
             // res.send(registered);
-            sendMail(registered.email,registered.firstname)
+
+
+            sendMail(registered.email,registered.firstname, randomNum)
 
             res.status(201).render("index");
         }
@@ -162,7 +167,8 @@ app.post("/register", async(req, res)=>{
             //     res.send("Password does not have symbol")
             // }
             }
-        
+    
+    
 
 
     }
