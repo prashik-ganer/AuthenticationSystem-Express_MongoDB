@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const brcypt = require("bcryptjs");
+// const brcypt = require("bcryptjs");
 const bcrypt = require("bcryptjs/dist/bcrypt");
 
 
@@ -59,6 +59,8 @@ employeeSchema.pre("save", async function(next){
     console.log(`The current password is ${this.password}`);
     // If next() not added, the program will be running indefinitely
     this.password = await bcrypt.hash(this.password, 10)
+    // const isMatch = await bcrypt.compare(password, useremail.password);
+
     console.log(`Password after hashing is ${this.password}`);
     
     this.cpassword = undefined;

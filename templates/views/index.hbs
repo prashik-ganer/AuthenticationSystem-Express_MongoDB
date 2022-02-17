@@ -129,11 +129,13 @@ body {
     </div>
     <div class="mb-3">
         <label for="exampleInputPassword1" class="form-label">Password</label>
-        <input type="password" class="form-control" name="password">
+        <input type="text" class="form-control" name="password">
+        <div id="emailHelp" class="form-text">Password should contain atleast one uppercase, lowercase, a number and a a symbol.</div>
+
     </div>
     <div class="mb-3">
         <label for="exampleInputPassword1" class="form-label">Confirm Password</label>
-        <input type="password" class="form-control" name="cpassword">
+        <input type="text" class="form-control" name="cpassword">
     </div>
 
    
@@ -168,9 +170,3 @@ body {
   </div>
 </div> --}}
 
-
-<script>
-    $('.message a').click(function(){
-   $('form').animate({height: "toggle", opacity: "toggle"}, "slow");
-});
-</script>
