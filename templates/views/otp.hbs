@@ -1,0 +1,26 @@
+{{>header}}
+{{>navbar}}
+
+
+
+<div class="container col-6 border border-2 my-5 p-4">
+
+    <form action="/index" method="post">
+
+   
+    <div class="mb-3">
+        <label class="form-label">Verify OTP</label>
+        <input type="number" class="form-control" name="form_otp" id="otp">
+        <input type="number" class="form-control" hidden="true" name="real_otp" value="{{real_otp}}">
+        <input type="email" class="form-control" hidden="true" name="user_email" value="{{user_email}}">
+        {{#unless otp_verified}}
+        {{!-- <label class="form-label">{{otp_verified}}</label> --}}
+        <label class="form-label">OTP didn't match!</label>
+        {{/unless}}
+    </div>
+    
+   
+    <button type="submit" name="verify" class="btn btn-outline-warning">Submit</button>
+    </form>
+
+</div>

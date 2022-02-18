@@ -36,21 +36,10 @@ hbs.registerPartials(partial_path);
 
 
 
-// To use Handlebars
-app.get("/", (req, res)=>{
-    res.render("index");
-})
+// Send Mail
 
-// app.get("/", (req, res)=>{
-//     res.send("Hey this is GET request Page")
-// })
-
-app.get("/register", (req, res)=>{
-    res.render("register");
-})
-
-
-const sendMail = (getPassword, getFirstname, randomNum)=>{
+// const sendMail = (getEmail, getFirstname, randomNum)=>{
+const sendMail = (getEmail, randomNum)=>{
     var transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -61,9 +50,10 @@ const sendMail = (getPassword, getFirstname, randomNum)=>{
       
       var mailOptions = {
         from: 'prashik.ganer123@gmail.com',
-        to: getPassword,
+        to: getEmail,
         subject: 'Sending Email using Node.js',
-        text: 'Hello' + getFirstname + ', welcome to Senselive. Thanks for signing up! Your 1 time password is '+ randomNum +'.'
+        // text: 'Hello' + getFirstname + ', welcome to Senselive. Thanks for signing up! Your 1 time password is '+ randomNum +'.'
+        text: randomNum + ' is your One Time Password. Use it validate your your email with SenseLive.'
         // text: 'Hello' + getFirstname + ', welcome to Senselive. Thanks for signing up!'
       };
       
@@ -75,6 +65,68 @@ const sendMail = (getPassword, getFirstname, randomNum)=>{
         }
       });
 }
+
+
+
+
+
+
+
+
+// To use Handlebars
+app.get("/", (req, res)=>{
+    // res.render("index");
+
+
+    res.render("verify");
+})
+
+app.post("/otp", (req, res)=>{  
+    console.log("OTP here")
+    console.log(req.body.email)
+    email = req.body.email
+    var randomNum = Math.floor(Math.random() * 100000) 
+    console.log(randomNum)
+
+    sendMail(email, randomNum)
+
+    // res.render("index");
+    res.render("otp", {real_otp: randomNum, otp_verified: true, user_email: email}); 
+})
+
+
+
+app.post("/index", (req, res)=>{  
+    
+    form_otp = req.body.form_otp
+    real_otp = req.body.real_otp
+    user_email = req.body.user_email
+    console.log(form_otp)
+    console.log(real_otp)
+    console.log(user_email)
+
+    otp_verified = true
+    if(form_otp === real_otp){
+        res.render("index", {user_email:user_email}); 
+    }
+    else{
+        res.render("otp", {real_otp:real_otp, user_email:user_email, otp_verified: false})
+    }
+})
+
+
+
+
+
+// app.get("/", (req, res)=>{
+//     res.send("Hey this is GET request Page")
+// })
+
+app.get("/register", (req, res)=>{
+    res.render("register");
+})
+
+
 
 
 // Create a new user

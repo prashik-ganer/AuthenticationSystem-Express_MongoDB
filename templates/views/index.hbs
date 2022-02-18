@@ -107,7 +107,7 @@ body {
 
 
       {{>navbar}}
-<div class="container col-6 border border-2 my-5 px-4">
+<div class="container col-6 border border-2 my-5 p-4">
 
     <form action="/register" method="post">
 
@@ -124,7 +124,7 @@ body {
     </div>
     <div class="mb-3">
         <label for="exampleInputEmail1" class="form-label">Email address</label>
-        <input type="email" class="form-control" name="email" id="exampleInputEmail1" aria-describedby="emailHelp">
+        <input type="email" class="form-control" name="email" id="exampleInputEmail1" aria-describedby="emailHelp" value="{{user_email}}">
         <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
     </div>
     <div class="mb-3">
@@ -143,7 +143,7 @@ body {
         <label for="exampleInputPassword1" class="form-label">Age</label>
         <input type="number" class="form-control" name="age">
     </div>
-    <button type="submit" name="register" class="btn btn-primary">Submit</button>
+    <button type="submit" name="register" class="btn btn-outline-warning">Submit</button>
     </form>
 
 </div>
