@@ -38,8 +38,8 @@ hbs.registerPartials(partial_path);
 
 // Send Mail
 
-// const sendMail = (getEmail, getFirstname, randomNum)=>{
-const sendMail = (getEmail, randomNum)=>{
+// const sendMailForSignup = (getEmail, getFirstname, randomNum)=>{
+const sendMailForSignup = (getEmail, randomNum)=>{
     var transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -51,10 +51,36 @@ const sendMail = (getEmail, randomNum)=>{
       var mailOptions = {
         from: 'prashik.ganer123@gmail.com',
         to: getEmail,
-        subject: 'Sending Email using Node.js',
+        subject: 'Your Email validation code',
         // text: 'Hello' + getFirstname + ', welcome to Senselive. Thanks for signing up! Your 1 time password is '+ randomNum +'.'
         text: randomNum + ' is your One Time Password. Use it validate your your email with SenseLive.'
         // text: 'Hello' + getFirstname + ', welcome to Senselive. Thanks for signing up!'
+      };
+      
+      transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+          console.log(error);
+        } else {
+          console.log('Email sent: ' + info.response);
+        }
+      });
+}
+
+const sendMailForPasswordRecovery = (getEmail, randomNum)=>{
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'prashik.ganer123@gmail.com',
+          pass: 'prashik12345'
+        }
+      });
+      
+      var mailOptions = {
+        from: 'prashik.ganer123@gmail.com',
+        to: getEmail,
+        subject: 'Your Recovery Password',
+        text: 'We received a request to reset your Senselive dashboard password. Enter the following password reset code: ' + randomNum + '.'
+        
       };
       
       transporter.sendMail(mailOptions, function(error, info){
@@ -71,8 +97,6 @@ const sendMail = (getEmail, randomNum)=>{
 
 
 
-
-
 // To use Handlebars
 app.get("/", (req, res)=>{
     // res.render("index");
@@ -81,14 +105,133 @@ app.get("/", (req, res)=>{
     res.render("verify");
 })
 
-app.post("/otp", (req, res)=>{  
+
+app.get("/forgot-password-step-1", (req, res)=>{
+    res.render("forgot-password-step-1");
+})
+app.get("/forgot-password-step-2", (req, res)=>{
+    res.render("forgot-password-step-1");
+})
+
+
+
+
+app.post("/forgot-password-step-2", async(req, res)=>{
+    try{
+
+        recovery_email = req.body.email
+        console.log(recovery_email)
+        
+    const user_object = await Register.findOne({email:recovery_email});
+    console.log(user_object)
+
+
+    
+    user_valid = false
+    if(user_object == null){
+        res.send("Your email is not yet registered!")
+        // console.log("Your email is not yet registered!")
+    }else{
+        
+        user_valid = true
+        var randomNum = Math.floor(Math.random() * 10000000) 
+        console.log(randomNum) 
+        sendMailForPasswordRecovery(recovery_email, randomNum)
+        res.render("forgot-password-step-2", {recovery_otp: randomNum, otp_verified: true, recovery_email: recovery_email})
+        // console.log("You can reset your password!")
+    }
+    // res.render("forgot-password-step-two");
+}catch(err){
+    res.send(err)
+}
+})
+
+app.get("/forgot-password-step-3", (req, res)=>{
+    res.render("forgot-password-step-3");
+})
+
+app.post("/forgot-password-step-3", (req, res)=>{
+
+    recovery_email = req.body.recovery_email
+    real_recovery_otp = req.body.recovery_otp
+    user_recovery_otp = req.body.user_filled_code
+    console.log(recovery_email)
+    console.log(real_recovery_otp)
+    console.log(user_recovery_otp)
+
+    recovery_otp_verified = true
+    if(user_recovery_otp === real_recovery_otp){
+        // res.render("forgot-password-step-3", {recovery_email:recovery_email}); 
+        // res.send("otp match!"); 
+        console.log("otp match!"); 
+        res.render("forgot-password-step-3", {recovery_email: recovery_email, real_recovery_otp: real_recovery_otp, user_recovery_otp: user_recovery_otp});
+    }
+    else{
+        // res.render("forgot-password-step-2", {real_otp:real_otp, user_email:user_email, otp_verified: false})
+        console.log("OTP didn't match!"); 
+        res.send("OTP didn't match!")
+    }
+
+
+
+})
+
+
+app.post("/home", async(req, res)=>{
+
+    const password = req.body.password;
+    const cpassword = req.body.cpassword;
+    console.log(password)
+    console.log(cpassword)
+
+    recovery_email = req.body.recovery_email
+    
+    
+    
+    console.log(recovery_email)
+    const user_object = await Register.findOne({email:recovery_email});
+    console.log("user")
+    // console.log(user_object.id)
+
+    // res.send("success")
+    
+    hashed_password = await bcrypt.hash(password, 10)
+    console.log(hashed_password)
+
+
+    if(password===cpassword){
+
+        const updated_object = await Register.findByIdAndUpdate({_id: user_object.id},
+            {
+                $set:{
+                    new:true,
+                    password: hashed_password
+                }
+            },{
+                    useFindAndModify: false
+                
+            })
+           console.log(updated_object)
+            res.status(201).render("home", {userFirstname: user_object.firstname});
+    }else{
+        res.send("Passwords didn't match")
+    }
+    
+
+
+})
+
+
+app.post("/otp", async(req, res)=>{  
     console.log("OTP here")
     console.log(req.body.email)
     email = req.body.email
     var randomNum = Math.floor(Math.random() * 100000) 
     console.log(randomNum)
 
-    sendMail(email, randomNum)
+    const mail = await sendMailForSignup(email, randomNum)
+    console.log("mail")
+    console.log(mail)
 
     // res.render("index");
     res.render("otp", {real_otp: randomNum, otp_verified: true, user_email: email}); 
@@ -199,9 +342,9 @@ app.post("/register", async(req, res)=>{
             // res.send(registered);
 
 
-            sendMail(registered.email,registered.firstname, randomNum)
+            // sendMail(registered.email,registered.firstname, randomNum)
 
-            res.status(201).render("index");
+            res.status(201).render("home");
         }
         else
         
@@ -253,7 +396,7 @@ app.post("/login", async(req, res)=>{
         // if(useremail.password === userFilled_password){
         if(isMatch){
             // res.render("index");
-            res.status(201).render("index");
+            res.status(201).render("home");
         }else{
             // res.send("Passwords don't match!")
             res.send("Invalid Password Credentials!")
