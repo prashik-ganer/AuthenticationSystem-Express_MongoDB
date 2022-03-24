@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 // const brcypt = require("bcryptjs");
 const bcrypt = require("bcryptjs/dist/bcrypt");
+const jwt = require("jsonwebtoken")
 
 
 
@@ -34,9 +35,46 @@ const employeeSchema = new mongoose.Schema({
     cpassword:{
         type:String,
         required: true
-    }   
+    },
+    
+
+    // Important to Add
+    tokens:[{
+        token:{
+            type:String,
+            required: true
+        }
+    }] 
 
 })
+
+
+// Middleware
+// .methods is used when working with instance
+
+// Generating Token
+employeeSchema.methods.generateAuthToken = async function(){
+    try{
+        console.log("This is id")
+        console.log(this._id)
+        // const token = jwt.sign({_id:this._id.toString()}, process.env.SECRET_KEY);
+        const token = jwt.sign({_id:this._id.toxString()}, "thisisthesecretkeywhichshouldbeatleastXXXIIbitslong");
+        console.log(token)
+        
+        this.tokens = this.tokens.concat({token: token})
+        
+        await this.save();
+        console.log(token);
+        return token;
+    }catch(err){
+        res.send("This is error part "+ err);
+        console.log("This is error part "+ err);
+    }
+}
+
+
+
+
 
 // const brcypt = require("bcryptjs");
 // const bcrypt = require("bcryptjs/dist/bcrypt");
@@ -52,6 +90,9 @@ const employeeSchema = new mongoose.Schema({
 
 // securePassword("Prashik12345!")
 
+
+
+// Convertion of password into hashcode
 employeeSchema.pre("save", async function(next){
     
     if(this.isModified("password")){
@@ -63,7 +104,7 @@ employeeSchema.pre("save", async function(next){
 
     console.log(`Password after hashing is ${this.password}`);
     
-    this.cpassword = undefined;
+    // this.cpassword = undefined;
     }
     next();
 })

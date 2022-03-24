@@ -5,12 +5,20 @@ const brcypt = require("bcryptjs");
 const bcrypt = require("bcryptjs/dist/bcrypt");
 var nodemailer = require('nodemailer');
 
+const jwt = require("jsonwebtoken")
+const cookieParser = require("cookie-parser")
+const auth = require("./middleware/auth")
+
 const app = express();
 
 require("./db/connect")
 const Register = require("./models/registers")
 const { json } = require("express");
 const async = require("hbs/lib/async");
+
+const { cookie } = require('express/lib/response');
+
+
 const PORT = process.env.PORT || 3000;
 
 
@@ -25,6 +33,7 @@ console.log(path.join(__dirname, "----> dirname"))
 
 // To get data from form
 app.use(express.json());
+app.use(cookieParser())
 app.use(express.urlencoded({extended: false}))
 
 
@@ -92,7 +101,7 @@ const sendMailForPasswordRecovery = (getEmail, randomNum)=>{
       });
 }
 
-
+z
 
 
 
@@ -100,9 +109,40 @@ const sendMailForPasswordRecovery = (getEmail, randomNum)=>{
 // To use Handlebars
 app.get("/", (req, res)=>{
     // res.render("index");
-
-
     res.render("verify");
+})
+
+
+// 'auth' is a middleware
+app.get("/secret", auth ,(req, res)=>{
+    // Get cookies
+    console.log(`This is the cookie content of jwt ---> ${req.cookies.jwt}`)
+    res.render("secret");
+})
+
+app.get("/logout", auth, async(req, res)=>{
+    try {
+        console.log(req.user)
+       
+        /* // req.token --> current token of user
+        // To logout current particular user
+        
+        req.user.tokens = req.user.tokens.filter((current_element)=>{
+            return current_element.token !== req.token
+        })
+        */
+        
+        // Logout from all devices at once
+        req.user.tokens = [];
+
+        res.clearCookie("jwt");
+        console.log("Loggedout")
+        await req.user.save()
+        res.render("login")
+    } catch (error) {
+        // 500 --> server error
+        res.status(500).send(error)
+    }
 })
 
 
@@ -333,6 +373,38 @@ app.post("/register", async(req, res)=>{
                 cpassword: req.body.cpassword,
             })
 
+// *****************  TOKEN AUTHENTICATION START *****************
+
+            // Password needs to be hashed
+
+            // Generating JsonToken
+            const token = await registerEmployee.generateAuthToken();
+            console.log(token)
+            
+            // The res.cookie() function is used to set the cookie name to value.
+            // The value parameter may be a string or object converted to JSON
+            // res.cookie(name, value, [options])
+            console.log("Before Cookies")
+            
+            // Storing generated token in web browser using cookies
+            res.cookie("jwt", token,{
+                
+                // Example is College login
+                expires: new Date(Date.now()+ 5000),
+                httpOnly: true
+            });
+            // console.log("After Cookies")
+
+            // console.log("cookies" + cookie)
+            // res.cookie("jwt", token);
+            console.log("cookie")
+            console.log(cookie)
+
+
+// *****************  TOKEN AUTHENTICATION END *****************
+
+
+
             // Saving into database
             const registered = await registerEmployee.save();
             console.log(registered)
@@ -387,6 +459,24 @@ app.post("/login", async(req, res)=>{
         const isMatch = await bcrypt.compare(userFilled_password, useremail.password);
         console.log(isMatch)
 
+
+// *****************  TOKEN AUTHENTICATION START *****************
+
+        const token = await useremail.generateAuthToken();
+        console.log(token)
+
+
+        res.cookie("jwt", token,{
+                
+            // Example is College login
+            expires: new Date(Date.now()+ 15000),
+            httpOnly: true
+        });
+
+// *****************  TOKEN AUTHENTICATION END *****************
+
+
+        
         // res.send(`Email is ${userFilled_email} and password is ${userFilled_password}`)
         // res.send(useremail.password);
         /* res.send(useremail.password);
@@ -406,6 +496,23 @@ app.post("/login", async(req, res)=>{
         // res.status(400).send("Invalid Email!")
         res.status(400).send("Invalid Login Credentials!")
     }
+
+    // securePassword("Prashik12345!")
+
+// const jwt = require("jsonwebtoken")
+
+// const createToken = async() =>{
+//     const token = await jwt.sign({_id:"621327db6f9b6020127566ad"}, "tinyChangesRemarcableResultsAtomicHabits",{
+//         expiresIn: "120 seconds"
+//     })
+//     console.log(token);
+
+//     user_verification = await jwt.verify(token, "tinyChangesRemarcableResultsAtomicHabits")
+//     console.log(user_verification)
+// }
+
+// createToken();
+
 })
 
 

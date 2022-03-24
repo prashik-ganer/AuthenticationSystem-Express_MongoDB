@@ -8,6 +8,6 @@ mongoose.connect("mongodb://localhost:27017/Auth",
                   // useFindAndModify: true
                 })
         .then(()=> console.log("connection Successful!"))
-        // We use cathch to show error
+        // We use catch to show error
         .catch((err) => console.log(err)
         );
